@@ -1,0 +1,52 @@
+# This is a Databricks asset bundle definition for dbx_data_pipeline.
+# See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
+bundle:
+  name: dbx_data_pipeline
+  uuid: 0f09ee72-5886-4739-8121-3cff3a2cbdcf
+
+artifacts:
+  default:
+    type: whl
+    build: poetry build
+    path: .
+
+include:
+  - resources/*.yml
+
+targets:
+  dev:
+    # The default target uses 'mode: development' to create a development copy.
+    # - Deployed resources get prefixed with '[dev my_user_name]'
+    # - Any job schedules and triggers are paused by default.
+    # See also https://docs.databricks.com/dev-tools/bundles/deployment-modes.html.
+    mode: development
+    default: true
+    workspace:
+      host: https://adb-4519574674695026.6.azuredatabricks.net
+    variables:
+      catalog: dev_catalog
+      schema: schema
+
+  test:
+    # The test target uses 'mode: test' to create a test copy.
+    # - Deployed resources get prefixed with '[test my_user_name]'
+    # - Any job schedules and triggers are paused by default.
+    # See also https://docs.databricks.com/dev-tools/bundles/deployment-modes.html.
+    mode: test
+    workspace:
+      host: https://adb-4519574674695026.6.azuredatabricks.net
+    variables:
+      catalog: test_catalog
+      schema: schema
+
+  prod:
+    # The prod target uses 'mode: production' to create a production copy.
+    # - Deployed resources get prefixed with '[prod my_user_name]'
+    # - Any job schedules and triggers are active by default.
+    # See also https://docs.databricks.com/dev-tools/bundles/deployment-modes.html.
+    mode: production
+    workspace:
+      host: https://adb-4519574674695026.6.azuredatabricks.net
+    variables:
+      catalog: prod_catalog
+      schema: schema

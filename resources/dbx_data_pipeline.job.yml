@@ -1,0 +1,49 @@
+# The main job for dbx_data_pipeline.
+resources:
+  jobs:
+    dbx_data_pipeline_job:
+      name: dbx_data_pipeline_job
+
+      trigger:
+        # Run this job every day, exactly one day from the last run; see https://docs.databricks.com/api/workspace/jobs/create#trigger
+        periodic:
+          interval: 1
+          unit: DAYS
+
+      email_notifications:
+        on_failure:
+          - omarkhano2403@gmail.com
+
+      tasks:
+        - task_key: bronze
+          job_cluster_key: job_cluster
+          notebook_task:
+            notebook_path: ../src/Notebooks/Demo_CDC/bronze
+            base_parameters:
+              datasource: adls://container@account_${bundle.target}.dfs.core.windows.net
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+          libraries:
+            - whl: ../dist/*.whl
+        
+        - task_key: silver
+          depends_on:
+            - task_key: bronze
+          job_cluster_key: job_cluster
+          notebook_task:
+            notebook_path: ../src/Notebooks/Demo_CDC/silver
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+          libraries:
+            - whl: ../dist/*.whl
+        
+      job_clusters:
+        - job_cluster_key: job_cluster
+          new_cluster:
+            spark_version: 15.4.x-scala2.12
+            node_type_id: Standard_D3_v2
+            data_security_mode: SINGLE_USER
+            autoscale:
+                min_workers: 1
+                max_workers: 4

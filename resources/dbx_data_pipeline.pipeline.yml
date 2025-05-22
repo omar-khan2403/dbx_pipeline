@@ -1,0 +1,13 @@
+# The main pipeline for dbx_data_pipeline
+resources:
+  pipelines:
+    dbx_data_pipeline_pipeline:
+      name: dbx_data_pipeline_pipeline
+      catalog: corporatedata_dev
+      schema: dbx_data_pipeline_${bundle.target}
+      libraries:
+        - notebook:
+            path: ../src/Notebooks/Demo_Pipeline/Demo_dlt.py
+      configuration:
+        bundle.datasource: adls://container@account_${bundle.target}.dfs.core.windows.net
+        bundle.sourcePath: ${workspace.file_path}/src
