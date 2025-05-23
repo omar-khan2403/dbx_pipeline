@@ -15,7 +15,20 @@ resources:
           - omarkhano2403@gmail.com
 
       tasks:
+        - task_key: requirements
+          job_cluster_key: job_cluster
+          notebook_task:
+            notebook_path: ../src/Notebooks/Demo_CDC/requirements
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+              group_engineering: ${var.group_engineering}
+              config: ${workspace.file_path}/Notebooks/Demo_CDC/config.yml
+          libraries:
+            - whl: ../dist/*.whl
         - task_key: bronze
+          depends_on:
+            - task_key: requirements
           job_cluster_key: job_cluster
           notebook_task:
             notebook_path: ../src/Notebooks/Demo_CDC/bronze
@@ -23,6 +36,7 @@ resources:
               datasource: adls://container@account_${bundle.target}.dfs.core.windows.net
               catalog: ${var.catalog}
               schema: ${var.schema}
+              config: ${workspace.file_path}/Notebooks/Demo_CDC/config.yml
           libraries:
             - whl: ../dist/*.whl
         
@@ -35,6 +49,7 @@ resources:
             base_parameters:
               catalog: ${var.catalog}
               schema: ${var.schema}
+              config: ${workspace.file_path}/Notebooks/Demo_CDC/config.yml
           libraries:
             - whl: ../dist/*.whl
         

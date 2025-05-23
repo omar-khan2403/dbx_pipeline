@@ -1,0 +1,5 @@
+bronze_table: demo_bronze
+silver_table: demo_silver
+quarantine_table: demo_quarantine
+
+

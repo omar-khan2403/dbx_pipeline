@@ -26,6 +26,7 @@ targets:
     variables:
       catalog: dev_catalog
       schema: schema
+      group_engineering: AD_DEV_Engineering
 
   test:
     # The test target uses 'mode: test' to create a test copy.
@@ -38,6 +39,7 @@ targets:
     variables:
       catalog: test_catalog
       schema: schema
+      group_engineering: AD_TST_Engineering
 
   prod:
     # The prod target uses 'mode: production' to create a production copy.
@@ -50,3 +52,4 @@ targets:
     variables:
       catalog: prod_catalog
       schema: schema
+      group_engineering: AD_PRD_Engineering

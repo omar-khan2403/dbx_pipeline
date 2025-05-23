@@ -1,15 +1,29 @@
+# Databricks notebook source
+
 import pyspark.sql.functions as F
+import yaml
 
 
 dbutils.widgets.text("catalog", "catalog_dev")
 dbutils.widgets.text("schema", "schema")
 dbutils.widgets.text("datasource", "")
+dbutils.widgets.text("config_yml", "")
 
 
 catalog = dbutils.widgets.get("catalog")
 schema = dbutils.widgets.get("schema")
 source_data_path = dbutils.widgets.get("datasource")
+config_yml_path = dbutils.widgets.get("config_yml")
 
+# COMMAND ----------
+
+#load yml
+with open(config_yml_path, "r") as file:
+    config = yaml.safe_load(file)
+
+bronze_table = config["bronze_table"]
+
+# COMMAND ----------
 
 bronze_df = (
     spark.readStream.format(
@@ -27,4 +41,4 @@ bronze_df = (
 # Write the data to a bronze table
 bronze_df.writeStream.format("delta").outputMode("append").option(
     "checkpointLocation", "/tmp/bronze_checkpoint"
-).table(f"{catalog}.{schema}.bronze_table")  # write to bronze table
+).table(f"{catalog}.{schema}.{bronze_table}")  # write to bronze table
