@@ -2,10 +2,15 @@
 from dbx_data_pipeline.main import check_null_ids
 
 from delta.tables import DeltaTable
+
 import pyspark.sql.functions as F
 from pyspark.sql.window import Window
 import yaml
+from pyspark.sql import SparkSession
 
+spark = SparkSession.getActiveSession()
+
+# COMMAND ----------
 
 dbutils.widgets.text("catalog", "catalog_dev")
 dbutils.widgets.text("schema", "schema")
@@ -18,7 +23,7 @@ config_yml_path = dbutils.widgets.get("config_yml")
 
 # COMMAND ----------
 
-#load yml
+# load yml
 with open(config_yml_path, "r") as file:
     config = yaml.safe_load(file)
 
@@ -28,9 +33,7 @@ quarantine_table = config["quarantine_table"]
 
 # COMMAND ----------
 
-bronze_df = (
-    spark.table(f"{catalog}.{schema}.{bronze_table}")
-)
+bronze_df = spark.table(f"{catalog}.{schema}.{bronze_table}")
 window_spec = Window.partitionBy("id").orderBy(F.col("row_update_time").desc())
 latest_snapshot = (
     bronze_df.withColumn("row_num", F.row_number().over(window_spec))
@@ -42,7 +45,9 @@ latest_snapshot = (
 invalid_data = check_null_ids(latest_snapshot, "id", bronze_table)
 
 # append invalid data to a separate table for review
-invalid_data.write.format("delta").mode("append").saveAsTable(f"{catalog}.{schema}.{quarantine_table}")
+invalid_data.write.format("delta").mode("append").saveAsTable(
+    f"{catalog}.{schema}.{quarantine_table}"
+)
 
 
 # COMMAND ----------
@@ -53,8 +58,7 @@ silver = DeltaTable.forName(spark, f"{catalog}.{schema}.{silver_table}")
 
 # Merge the latest snapshot into the silver table
 silver.alias("target").merge(
-    source=latest_snapshot.alias("source"),
-    condition="target.id = source.id"
+    source=latest_snapshot.alias("source"), condition="target.id = source.id"
 ).whenNotMatchedInsert(
     values={
         "id": "source.id",
@@ -68,6 +72,5 @@ silver.alias("target").merge(
     set={
         "is_current": F.lit(False),
         "end_date": F.current_timestamp(),
-    }
+    },
 ).execute()
-

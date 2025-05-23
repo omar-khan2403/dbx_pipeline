@@ -1,7 +1,9 @@
 # Databricks notebook source
-
+from pyspark.sql import SparkSession
 import pyspark.sql.functions as F
 import yaml
+
+spark = SparkSession.getActiveSession()
 
 
 dbutils.widgets.text("catalog", "catalog_dev")
